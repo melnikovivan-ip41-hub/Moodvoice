@@ -87,6 +87,18 @@ let mediaRecorder;
         }
     }
 
+    function toggleMusic(btn) {
+        btn.classList.toggle('playing');
+        
+        const textSpan = btn.querySelector('span');
+        
+        if (btn.classList.contains('playing')) {
+            textSpan.textContent = 'Музика грає...';
+        } else {
+            textSpan.textContent = 'Музика під настрій';
+        }
+    }
+
     // ===== ТАЙМЕР =====
     function startTimer() {
         timerSeconds = 0;
@@ -126,12 +138,17 @@ let mediaRecorder;
             return;
         }
 
+        // === ДЕМО-РЕЖИМ: Імітуємо успішне збереження ===
+        console.log("Аудіо успішно записано у браузері. Розмір: " + audioChunks.length + " шматків.");
+        alert("Демо-режим: Аудіо успішно збережено! Переходимо до аналітики.");
+        showScreen('analytics-screen');
+
+        /* === СПРАВЖНІЙ КОД ДЛЯ JAVA (Закоментовано до кращих часів) ===
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         const formData = new FormData();
         formData.append("file", audioBlob, "record.webm");
 
         try {
-            // ВІДПРАВКА НА SPRING BOOT (потім заміниш localhost на реальний сервер)
             const response = await fetch("http://localhost:8080/api/audio/upload", {
                 method: "POST",
                 body: formData
@@ -141,9 +158,9 @@ let mediaRecorder;
             showScreen('analytics-screen');
         } catch (error) {
             console.error("Помилка відправки:", error);
-            alert("Аудіо зібрано, але Java-сервер не відповідає. Запустіть Spring Boot!");
-            showScreen('analytics-screen'); // Переходимо далі навіть при помилці для тесту UI
+            alert("Java-сервер не відповідає. Запустіть Spring Boot!");
         }
+        =============================================================== */
     }
 
     // ===== ВКЛАДКИ ПІДТРИМКИ =====
