@@ -182,6 +182,21 @@ let mediaRecorder;
         }
     }
 
+    // ===== ЛОГІКА АНОНІМНОГО ПОШУКУ =====
+    function startAnonymousSearch() {
+        // Ховаємо велику картку
+        document.getElementById('search-card').style.display = 'none';
+        // Показуємо результати
+        document.getElementById('search-results-area').style.display = 'block';
+    }
+
+    function stopAnonymousSearch() {
+        // Ховаємо результати
+        document.getElementById('search-results-area').style.display = 'none';
+        // Знову показуємо велику картку
+        document.getElementById('search-card').style.display = 'block';
+    }
+
     // ===== ІНІЦІАЛІЗАЦІЯ (Анімація хвиль) =====
     document.addEventListener('DOMContentLoaded', () => {
         const waveBars = document.querySelectorAll('.wave-bar');
