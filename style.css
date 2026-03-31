@@ -883,6 +883,20 @@
             margin-bottom: 32px;
         }
 
+        @keyframes musicPulse {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); }
+           100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+
+        .music-button.playing {
+            background: var(--brand-gradient);
+            border-color: transparent;
+            color: white;
+            animation: musicPulse 2s infinite; 
+            transform: scale(1.05); 
+        }
+
         .music-button {
             display: flex;
             align-items: center;
