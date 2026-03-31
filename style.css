@@ -1,10 +1,10 @@
 /* ===== CSS VARIABLES ===== */
         :root {
-            --bg-main: #0a0a0f;
-            --bg-secondary: #0d0d14;
-            --bg-card: #12131a;
-            --bg-card-hover: #1a1b24;
-            --bg-input: #16171f;
+            --bg-main: #0a0c16;      
+            --bg-secondary: #0e101d; 
+            --bg-card: #121420;      
+            --bg-card-hover: #191b2a;
+            --bg-input: #151724;
             --border-color: #1e1f2a;
             --border-light: #2a2b38;
             
