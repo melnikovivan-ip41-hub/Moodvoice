@@ -156,23 +156,23 @@
         
         <div class="auth-box">
             <div class="tabs">
-                <button class="tab" onclick="showScreen('login-screen')">Вхід</button>
-                <button class="tab active" data-testid="register-tab">Реєстрація</button>
+                <button class="tab active" data-testid="login-tab">Вхід</button>
+                <button class="tab" data-testid="register-tab-switch" onclick="showScreen('register-screen')">Реєстрація</button>
             </div>
 
-            <form onsubmit="handleRegister(event)">
+            <form onsubmit="handleLogin(event)">
                 <div class="input-group">
-                    <label for="register-nickname">Анонімний нікнейм</label>
+                    <label for="login-email">Email</label>
                     <div class="input-wrapper">
-                        <input type="text" id="register-nickname" data-testid="register-nickname-input" placeholder="Користувач_123" required>
+                        <input type="email" id="login-email" data-testid="login-email-input" placeholder="your@email.com" required>
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label for="register-password">Пароль</label>
+                    <label for="login-password">Пароль</label>
                     <div class="input-wrapper">
-                        <input type="password" id="register-password" data-testid="register-password-input" placeholder="••••••••" required>
-                        <button type="button" class="input-toggle" onclick="togglePassword('register-password')">
+                        <input type="password" id="login-password" data-testid="login-password-input" placeholder="••••••••" required>
+                        <button type="button" class="input-toggle" onclick="togglePassword('login-password')">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                 <circle cx="12" cy="12" r="3"/>
@@ -181,7 +181,11 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-full" data-testid="register-submit-btn">Зареєструватися</button>
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <a href="#" class="auth-link">Забули пароль?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" data-testid="login-submit-btn">Увійти</button>
             </form>
 
             <div class="secure-badge">
@@ -392,13 +396,13 @@
             </button>
             <p class="stop-hint">Натисніть, щоб зупинити</p>
 
-            <button class="music-button" data-testid="music-mood-btn">
+            <button class="music-button" data-testid="music-mood-btn" onclick="toggleMusic(this)">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 18V5l12-2v13"/>
+                <path d="M9 18V5l12-2v13"/>
                     <circle cx="6" cy="18" r="3"/>
-                    <circle cx="18" cy="16" r="3"/>
+                <circle cx="18" cy="16" r="3"/>
                 </svg>
-                Музика під настрій
+                <span>Музика під настрій</span>
             </button>
         </div>
 
