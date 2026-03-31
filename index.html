@@ -623,9 +623,9 @@
                 </button>
             </div>
 
-            <!-- Find Support Tab Content -->
             <div id="find-support-content">
-                <div class="search-card" id="search-card">
+                
+                <div class="search-card" id="search-card" onclick="startAnonymousSearch()" style="cursor: pointer; transition: all 0.2s;">
                     <div class="search-icon">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -638,72 +638,70 @@
                     <p class="search-desc">Знайдемо людину зі схожими переживаннями</p>
                 </div>
 
-                <div style="text-align: center;">
-                    <div class="searching-status" id="searching-status" data-testid="searching-status">
-                        <span class="searching-dot"></span>
-                        Шукаємо співрозмовника...
+                <div id="search-results-area" style="display: none;">
+                    <div style="text-align: center;">
+                        <div class="searching-status" id="searching-status" data-testid="searching-status">
+                            <span class="searching-dot"></span>
+                            Шукаємо співрозмовника...
+                        </div>
                     </div>
+
+                    <section class="matches-section" id="matches-section">
+                        <h3 class="section-title" style="margin-bottom: 16px;">Знайдені збіги:</h3>
+                        
+                        <div class="match-item" data-testid="match-item-1">
+                            <div class="match-header">
+                                <div class="match-status online">
+                                    <span class="status-dot"></span> Онлайн
+                                </div>
+                                <div class="match-percent">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                    92%
+                                </div>
+                            </div>
+                            <h4 class="match-title">Переживає стрес на роботі</h4>
+                            <button class="btn btn-primary match-button">Почати розмову</button>
+                        </div>
+
+                        <div class="match-item" data-testid="match-item-2">
+                            <div class="match-header">
+                                <div class="match-status online">
+                                    <span class="status-dot"></span> Онлайн
+                                </div>
+                                <div class="match-percent">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                    87%
+                                </div>
+                            </div>
+                            <h4 class="match-title">Шукає баланс в житті</h4>
+                            <button class="btn btn-primary match-button">Почати розмову</button>
+                        </div>
+
+                        <div class="match-item" data-testid="match-item-3">
+                            <div class="match-header">
+                                <div class="match-status offline">
+                                    <span class="status-dot"></span> 2 год тому
+                                </div>
+                                <div class="match-percent">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                    78%
+                                </div>
+                            </div>
+                            <h4 class="match-title">Відчуває самотність</h4>
+                            <button class="btn btn-primary match-button">Почати розмову</button>
+                        </div>
+                    </section>
+
+                    <button class="btn btn-secondary btn-full" onclick="stopAnonymousSearch()" style="margin-bottom: 24px;">Зупинити пошук</button>
                 </div>
-
-                <section class="matches-section" id="matches-section">
-                    <h3 class="section-title" style="margin-bottom: 16px;">Знайдені збіги:</h3>
-                    
-                    <div class="match-item" data-testid="match-item-1">
-                        <div class="match-header">
-                            <div class="match-status online">
-                                <span class="status-dot"></span>
-                                Онлайн
-                            </div>
-                            <div class="match-percent">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                                92%
-                            </div>
-                        </div>
-                        <h4 class="match-title">Переживає стрес на роботі</h4>
-                        <button class="btn btn-primary match-button" data-testid="start-chat-btn-1">Почати розмову</button>
-                    </div>
-
-                    <div class="match-item" data-testid="match-item-2">
-                        <div class="match-header">
-                            <div class="match-status online">
-                                <span class="status-dot"></span>
-                                Онлайн
-                            </div>
-                            <div class="match-percent">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                                87%
-                            </div>
-                        </div>
-                        <h4 class="match-title">Шукає баланс в житті</h4>
-                        <button class="btn btn-primary match-button" data-testid="start-chat-btn-2">Почати розмову</button>
-                    </div>
-
-                    <div class="match-item" data-testid="match-item-3">
-                        <div class="match-header">
-                            <div class="match-status offline">
-                                <span class="status-dot"></span>
-                                2 год тому
-                            </div>
-                            <div class="match-percent">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                                78%
-                            </div>
-                        </div>
-                        <h4 class="match-title">Відчуває самотність</h4>
-                        <button class="btn btn-primary match-button" data-testid="start-chat-btn-3">Почати розмову</button>
-                    </div>
-                </section>
-
-                <button class="btn btn-secondary btn-full" data-testid="stop-search-btn" style="margin-bottom: 24px;">Зупинити пошук</button>
             </div>
 
-            <!-- My Chats Tab Content (hidden by default) -->
             <div id="my-chats-content" style="display: none;">
                 <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 16px; opacity: 0.5;">
