@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodVoice — Інтелектуальний голосовий щоденник</title>
+    <style>
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --bg-main: #0a0a0f;
+            --bg-secondary: #0d0d14;
+            --bg-card: #12131a;
+            --bg-card-hover: #1a1b24;
+            --bg-input: #16171f;
+            --border-color: #1e1f2a;
+            --border-light: #2a2b38;
+            
+            --text-main: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            
+            --brand-gradient: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+            --brand-gradient-hover: linear-gradient(135deg, #9d6fff 0%, #4f90ff 100%);
+            --brand-purple: #8b5cf6;
+            --brand-blue: #3b82f6;
+            
+            --color-calm: #3b82f6;
+            --color-joy: #10b981;
+            --color-stress: #f97316;
+            --color-harmony: #a855f7;
+            --color-anxiety: #ef4444;
+            
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+            
+            --transition: all 0.2s ease;
+            --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .container {
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 8px; }
+            50% { height: 100%; }
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .gradient-text {
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: var(--radius-full);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--brand-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-light);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 10px 16px;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-main);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: var(--radius-md);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-simple {
+            justify-content: center;
+            position: relative;
+        }
+
+        .header-back {
+            position: absolute;
+            left: 0;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            position: absolute;
+            right: 0;
+        }
+
+        .header-action-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .header-action-btn:hover {
+            color: var(--text-main);
+        }
+
+        .header-action-btn.danger:hover {
+            color: var(--color-danger);
+        }
+
+        .header-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--brand-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-icon-btn {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .nav-icon-btn:hover {
+            color: var(--text-main);
+            background: var(--bg-card);
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+        }
+
+        .card-gradient {
+            background: var(--brand-gradient);
+            padding: 1px;
+            border-radius: var(--radius-xl);
+        }
+
+        .card-gradient-inner {
+            background: var(--bg-card);
+            border-radius: calc(var(--radius-xl) - 1px);
+            padding: 32px 24px;
+        }
+
+        /* ===== INPUTS ===== */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 14px 16px;
+            padding-right: 48px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-size: 15px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-wrapper input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--brand-purple);
+        }
+
+        .input-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== TABS ===== */
+        .tabs {
+            display: flex;
+            background: var(--bg-input);
+            border-radius: var(--radius-full);
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background: transparent;
+        }
+
+        .tab.active {
+            background: var(--brand-gradient);
+            color: white;
+        }
+
+        .tab:not(.active):hover {
+            color: var(--text-main);
+        }
+
+        /* ===== MOOD TAGS ===== */
+        .mood-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-calm {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--color-calm);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .tag-anxiety {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--color-stress);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
+        .tag-joy {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--color-joy);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .tag-harmony {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--color-harmony);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-item {
+            margin-bottom: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            color: var(--text-main);
+        }
+
+        .progress-value {
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-input);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: var(--radius-full);
+            transition: width 0.5s ease;
+        }
+
+        /* ===== LANDING PAGE ===== */
+        #landing-screen {
+            padding-bottom: 60px;
+        }
+
+        .landing-hero {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+
+        .landing-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            color: var(--brand-purple);
+            margin-bottom: 32px;
+        }
+
+        .landing-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .landing-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 480px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+
+        .landing-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 48px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            border-color: var(--border-light);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .feature-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--brand-purple);
+        }
+
+        .feature-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .support-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: var(--radius-xl);
+            padding: 40px 24px;
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .support-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--brand-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .support-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .support-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* ===== AUTH SCREENS ===== */
+        .auth-screen {
+            justify-content: center;
+            align-items: center;
+            padding: 40px 16px;
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-logo .logo-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+        }
+
+        .auth-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 32px 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-link {
+            color: var(--brand-purple);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+
+        .secure-badge {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-top: 24px;
+        }
+
+        .secure-badge svg {
+            flex-shrink: 0;
+            color: var(--color-success);
+        }
+
+        .secure-badge p {
+            font-size: 13px;
+            color: var(--color-success);
+            line-height: 1.5;
+        }
+
+        .auth-footer {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .auth-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .auth-footer a:hover {
+            color: var(--text-main);
+        }
+
+        /* ===== DASHBOARD ===== */
+        #dashboard-screen {
+            padding-bottom: 40px;
+        }
+
+        .dashboard-welcome {
+            padding: 24px 0;
+        }
+
+        .dashboard-welcome h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .dashboard-welcome p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .record-banner {
+            background: var(--brand-gradient);
+            padding: 2px;
+            border-radius: var(--radius-xl);
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .record-banner:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .record-banner-inner {
+            background: var(--bg-card);
+            border-radius: calc(var(--radius-xl) - 2px);
+            padding: 48px 24px;
+            text-align: center;
+        }
+
+        .mic-button {
+            width: 80px;
+            height: 80px;
+            background: var(--brand-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+            transition: var(--transition);
+        }
+
+        .record-banner:hover .mic-button {
+            transform: scale(1.05);
+        }
+
+        .record-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .record-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .stat-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .section-link {
+            color: var(--brand-purple);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .history-item:hover {
+            border-color: var(--border-light);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .history-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .history-date {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--text-main);
+        }
+
+        .history-time {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .history-preview {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        /* ===== RECORDING SCREEN ===== */
+        #recording-screen {
+            background: var(--bg-main);
+        }
+
+        .recording-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 16px;
+        }
+
+        .recording-timer {
+            font-size: 64px;
+            font-weight: 300;
+            margin-bottom: 48px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 60px;
+            margin-bottom: 48px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: var(--brand-gradient);
+            border-radius: 2px;
+            animation: wave 0.8s ease-in-out infinite;
+        }
+
+        .stop-button {
+            width: 72px;
+            height: 72px;
+            background: var(--color-danger);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-bottom: 16px;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+            transition: var(--transition);
+            border: none;
+        }
+
+        .stop-button:hover {
+            transform: scale(1.05);
+        }
+
+        .stop-hint {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .music-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 12px 20px;
+            font-size: 14px;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .music-button:hover {
+            border-color: var(--border-light);
+            background: var(--bg-card-hover);
+        }
+
+        .recording-footer {
+            padding: 20px 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .recording-actions {
+            display: flex;
+            gap: 12px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .recording-actions .btn {
+            flex: 1;
+            border-radius: var(--radius-md);
+        }
+
+        /* ===== ANALYTICS SCREEN ===== */
+        #analytics-screen {
+            padding-bottom: 40px;
+        }
+
+        .analytics-date {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .analytics-date span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mood-art {
+            width: 100%;
+            aspect-ratio: 1;
+            background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.4) 0%, rgba(59, 130, 246, 0.2) 40%, transparent 70%),
+                        var(--bg-card);
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .mood-art-badge {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .transcription-section {
+            margin-bottom: 32px;
+        }
+
+        .transcription-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .emotions-section {
+            margin-bottom: 32px;
+        }
+
+        .reflection-section {
+            margin-bottom: 32px;
+        }
+
+        .reflection-card {
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+        }
+
+        .reflection-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .reflection-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* ===== SUPPORT SCREEN ===== */
+        #support-screen {
+            padding-bottom: 40px;
+        }
+
+        .support-banner-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .support-banner-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .support-banner-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .support-banner-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .search-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: var(--radius-xl);
+            padding: 48px 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .search-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--brand-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .search-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .search-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .searching-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 12px 20px;
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 24px;
+        }
+
+        .searching-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--brand-purple);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .matches-section {
+            margin-bottom: 24px;
+        }
+
+        .match-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .match-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .match-status.online .status-dot {
+            background: var(--color-success);
+        }
+
+        .match-status.offline .status-dot {
+            background: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .match-percent {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: var(--brand-purple);
+        }
+
+        .match-title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .match-button {
+            width: 100%;
+        }
+
+        .rules-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+        }
+
+        .rules-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules-list li {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .rules-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--text-muted);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (min-width: 768px) {
+            .container {
+                padding: 0 24px;
+            }
+
+            .landing-title {
+                font-size: 48px;
+            }
+
+            .landing-subtitle {
+                font-size: 18px;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .recording-timer {
+                font-size: 80px;
+            }
+
+            .mood-art {
+                max-width: 500px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .landing-title {
+                font-size: 28px;
+            }
+
+            .landing-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .landing-buttons .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .stat-box {
+                padding: 16px 8px;
+            }
+
+            .stat-number {
+                font-size: 24px;
+            }
+
+            .recording-timer {
+                font-size: 48px;
+            }
+
+            .tabs {
+                flex-wrap: nowrap;
+            }
+
+            .tab {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+        }
+
+        /* ===== ICONS ===== */
+        .icon {
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-sm {
+            width: 20px;
+            height: 20px;
+        }
+
+        .icon-lg {
+            width: 32px;
+            height: 32px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LANDING PAGE ===== -->
+    <div class="screen active" id="landing-screen">
+        <div class="container">
+            <header class="header">
+                <a href="#" class="logo" onclick="showScreen('landing-screen')">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                    MoodVoice
+                </a>
+                <button class="btn btn-ghost" data-testid="header-login-btn" onclick="showScreen('login-screen')">Увійти</button>
+            </header>
+
+            <section class="landing-hero">
+                <div class="landing-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                    Інтелектуальний голосовий щоденник
+                </div>
+                <h1 class="landing-title">Швидке емоційне<br><span class="gradient-text">розвантаження</span></h1>
+                <p class="landing-subtitle">Запишіть свої думки голосом. AI проаналізує ваші емоції та створить унікальне візуальне відображення настрою. Повністю анонімно та безпечно.</p>
+                <div class="landing-buttons">
+                    <button class="btn btn-primary" data-testid="get-started-btn" onclick="showScreen('register-screen')">Почати безкоштовно</button>
+                    <button class="btn btn-secondary" data-testid="landing-login-btn" onclick="showScreen('login-screen')">Увійти</button>
+                </div>
+            </section>
+
+            <section class="features-grid">
+                <div class="feature-card" data-testid="feature-voice">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Голосовий запис</h3>
+                    <p class="feature-desc">Просто натисніть кнопку та поділіться своїми думками. Швидко та інтуїтивно.</p>
+                </div>
+                <div class="feature-card" data-testid="feature-ai">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">AI-аналіз</h3>
+                    <p class="feature-desc">Отримайте глибокий аналіз емоцій та унікальне AI-зображення вашого настрою.</p>
+                </div>
+                <div class="feature-card" data-testid="feature-privacy">
+                    <div class="feature-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title">Анонімність</h3>
+                    <p class="feature-desc">Ваші дані захищені. Повна конфіденційність та безпека ваших емоцій.</p>
+                </div>
+            </section>
+
+            <section class="support-card">
+                <div class="support-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </div>
+                <h3 class="support-title">Анонімна підтримка</h3>
+                <p class="support-desc">Знайдіть людей зі схожими переживаннями. Підтримайте одне одного без розкриття особистості.</p>
+            </section>
+        </div>
+    </div>
+
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div class="screen auth-screen" id="login-screen">
+        <div class="auth-logo">
+            <div class="logo-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+            </div>
+            <span style="font-size: 20px; font-weight: 700;">MoodVoice</span>
+        </div>
+        
+        <div class="auth-box">
+            <div class="tabs">
+                <button class="tab active" data-testid="login-tab">Вхід</button>
+                <button class="tab" data-testid="register-tab-switch" onclick="showScreen('register-screen')">Реєстрація</button>
+            </div>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label for="login-email">Email</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="login-email" data-testid="login-email-input" placeholder="your@email.com" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="login-password">Пароль</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="login-password" data-testid="login-password-input" placeholder="••••••••" required>
+                        <button type="button" class="input-toggle" onclick="togglePassword('login-password')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="text-align: left; margin-bottom: 20px;">
+                    <a href="#" class="auth-link">Забули пароль?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" data-testid="login-submit-btn">Увійти</button>
+            </form>
+
+            <div class="secure-badge">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                </svg>
+                <p>Ваші дані захищені наскрізним шифруванням. Ми гарантуємо повну анонімність та конфіденційність.</p>
+            </div>
+        </div>
+
+        <div class="auth-footer">
+            <a href="#" onclick="showScreen('landing-screen')">Повернутися на головну</a>
+        </div>
+    </div>
+
+    <!-- ===== REGISTER SCREEN ===== -->
+    <div class="screen auth-screen" id="register-screen">
+        <div class="auth-logo">
+            <div class="logo-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+            </div>
+            <span style="font-size: 20px; font-weight: 700;">MoodVoice</span>
+        </div>
+        
+        <div class="auth-box">
+            <div class="tabs">
+                <button class="tab" onclick="showScreen('login-screen')">Вхід</button>
+                <button class="tab active" data-testid="register-tab">Реєстрація</button>
+            </div>
+
+            <form onsubmit="handleRegister(event)">
+                <div class="input-group">
+                    <label for="register-nickname">Анонімний нікнейм</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="register-nickname" data-testid="register-nickname-input" placeholder="Користувач_123" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="register-password">Пароль</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="register-password" data-testid="register-password-input" placeholder="••••••••" required>
+                        <button type="button" class="input-toggle" onclick="togglePassword('register-password')">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" data-testid="register-submit-btn">Зареєструватися</button>
+            </form>
+
+            <div class="secure-badge">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                </svg>
+                <p>Ваші дані захищені наскрізним шифруванням. Ми гарантуємо повну анонімність та конфіденційність.</p>
+            </div>
+        </div>
+
+        <div class="auth-footer">
+            <a href="#" onclick="showScreen('landing-screen')">Повернутися на головну</a>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARD SCREEN ===== -->
+    <div class="screen" id="dashboard-screen">
+        <div class="container">
+            <header class="header">
+                <a href="#" class="logo" onclick="showScreen('landing-screen')">
+                    <div class="logo-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                    MoodVoice
+                </a>
+                <div class="nav-icons">
+                    <button class="nav-icon-btn" data-testid="support-nav-btn" onclick="showScreen('support-screen')" title="Підтримка">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
+                    <button class="nav-icon-btn" data-testid="settings-nav-btn" title="Налаштування">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <section class="dashboard-welcome">
+                <h2>Вітаємо назад</h2>
+                <p>Як ваш настрій сьогодні?</p>
+            </section>
+
+            <div class="record-banner" data-testid="start-recording-btn" onclick="showScreen('recording-screen')">
+                <div class="record-banner-inner">
+                    <div class="mic-button">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="record-title">Почати запис</h3>
+                    <p class="record-subtitle">Натисніть, щоб поділитися своїми думками</p>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box" data-testid="stat-records">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Записів</div>
+                </div>
+                <div class="stat-box" data-testid="stat-streak">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Днів підряд</div>
+                </div>
+                <div class="stat-box" data-testid="stat-minutes">
+                    <div class="stat-number">42</div>
+                    <div class="stat-label">Хвилин</div>
+                </div>
+            </div>
+
+            <section>
+                <div class="section-header">
+                    <h3 class="section-title">Архів записів</h3>
+                    <a href="#" class="section-link">Переглянути всі</a>
+                </div>
+
+                <div class="history-list">
+                    <div class="history-item" data-testid="history-item-1" onclick="showScreen('analytics-screen')">
+                        <div class="history-header">
+                            <div class="history-meta">
+                                <div class="history-date">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                    31 Березня 2026
+                                </div>
+                                <div class="history-time">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12,6 12,12 16,14"/>
+                                    </svg>
+                                    22:15 • 3:24
+                                </div>
+                            </div>
+                            <span class="mood-tag tag-calm">Спокій</span>
+                        </div>
+                        <p class="history-preview">Сьогодні був довгий день, але я відчуваю спокій...</p>
+                    </div>
+
+                    <div class="history-item" data-testid="history-item-2" onclick="showScreen('analytics-screen')">
+                        <div class="history-header">
+                            <div class="history-meta">
+                                <div class="history-date">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                    30 Березня 2026
+                                </div>
+                                <div class="history-time">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12,6 12,12 16,14"/>
+                                    </svg>
+                                    21:45 • 2:10
+                                </div>
+                            </div>
+                            <span class="mood-tag tag-anxiety">Тривога</span>
+                        </div>
+                        <p class="history-preview">Трохи турбуюсь через завтрашню зустріч...</p>
+                    </div>
+
+                    <div class="history-item" data-testid="history-item-3" onclick="showScreen('analytics-screen')">
+                        <div class="history-header">
+                            <div class="history-meta">
+                                <div class="history-date">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                    29 Березня 2026
+                                </div>
+                                <div class="history-time">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12,6 12,12 16,14"/>
+                                    </svg>
+                                    23:05 • 4:15
+                                </div>
+                            </div>
+                            <span class="mood-tag tag-joy">Радість</span>
+                        </div>
+                        <p class="history-preview">Сьогодні сталося щось чудове! Я відчуваю...</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ===== RECORDING SCREEN ===== -->
+    <div class="screen" id="recording-screen">
+        <div class="container">
+            <header class="header header-simple">
+                <button class="header-back" data-testid="recording-close-btn" onclick="showScreen('dashboard-screen')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+                <span class="header-title">Запис</span>
+            </header>
+        </div>
+
+        <div class="recording-content">
+            <div class="recording-timer" id="recording-timer" data-testid="recording-timer">0:00</div>
+            
+            <div class="waveform" id="waveform">
+                <div class="wave-bar" style="height: 15px; animation-delay: 0s;"></div>
+                <div class="wave-bar" style="height: 25px; animation-delay: 0.1s;"></div>
+                <div class="wave-bar" style="height: 35px; animation-delay: 0.15s;"></div>
+                <div class="wave-bar" style="height: 45px; animation-delay: 0.2s;"></div>
+                <div class="wave-bar" style="height: 55px; animation-delay: 0.25s;"></div>
+                <div class="wave-bar" style="height: 50px; animation-delay: 0.3s;"></div>
+                <div class="wave-bar" style="height: 40px; animation-delay: 0.35s;"></div>
+                <div class="wave-bar" style="height: 55px; animation-delay: 0.4s;"></div>
+                <div class="wave-bar" style="height: 45px; animation-delay: 0.45s;"></div>
+                <div class="wave-bar" style="height: 35px; animation-delay: 0.5s;"></div>
+                <div class="wave-bar" style="height: 50px; animation-delay: 0.55s;"></div>
+                <div class="wave-bar" style="height: 60px; animation-delay: 0.6s;"></div>
+                <div class="wave-bar" style="height: 45px; animation-delay: 0.65s;"></div>
+                <div class="wave-bar" style="height: 35px; animation-delay: 0.7s;"></div>
+                <div class="wave-bar" style="height: 25px; animation-delay: 0.75s;"></div>
+                <div class="wave-bar" style="height: 40px; animation-delay: 0.8s;"></div>
+                <div class="wave-bar" style="height: 50px; animation-delay: 0.85s;"></div>
+                <div class="wave-bar" style="height: 35px; animation-delay: 0.9s;"></div>
+                <div class="wave-bar" style="height: 25px; animation-delay: 0.95s;"></div>
+                <div class="wave-bar" style="height: 15px; animation-delay: 1s;"></div>
+            </div>
+
+            <button class="stop-button" data-testid="stop-recording-btn" onclick="toggleRecording()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <rect x="6" y="6" width="4" height="12" rx="1"/>
+                    <rect x="14" y="6" width="4" height="12" rx="1"/>
+                </svg>
+            </button>
+            <p class="stop-hint">Натисніть, щоб зупинити</p>
+
+            <button class="music-button" data-testid="music-mood-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18V5l12-2v13"/>
+                    <circle cx="6" cy="18" r="3"/>
+                    <circle cx="18" cy="16" r="3"/>
+                </svg>
+                Музика під настрій
+            </button>
+        </div>
+
+        <div class="recording-footer">
+            <div class="recording-actions">
+                <button class="btn btn-secondary" data-testid="cancel-recording-btn" onclick="cancelRecording()">Скасувати</button>
+                <button class="btn btn-primary" data-testid="save-recording-btn" onclick="saveRecording()">Зберегти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ANALYTICS SCREEN ===== -->
+    <div class="screen" id="analytics-screen">
+        <div class="container">
+            <header class="header header-simple">
+                <button class="header-back" data-testid="analytics-back-btn" onclick="showScreen('dashboard-screen')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12,19 5,12 12,5"/>
+                    </svg>
+                </button>
+                <span class="header-title">Аналіз</span>
+                <div class="header-actions">
+                    <button class="header-action-btn" data-testid="share-btn" title="Поділитися">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"/>
+                            <circle cx="6" cy="12" r="3"/>
+                            <circle cx="18" cy="19" r="3"/>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                        </svg>
+                    </button>
+                    <button class="header-action-btn danger" data-testid="delete-btn" title="Видалити">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,6 5,6 21,6"/>
+                            <path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <div class="analytics-date">
+                <span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    31 Березня 2026
+                </span>
+                <span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                    22:15 • 3:24
+                </span>
+            </div>
+
+            <div class="mood-art" data-testid="mood-art">
+                <span class="mood-art-badge">AI-генерація настрою</span>
+            </div>
+
+            <section class="transcription-section">
+                <h3 class="section-title" style="margin-bottom: 12px;">Транскрипція</h3>
+                <div class="transcription-card" data-testid="transcription-text">
+                    Сьогодні був довгий день, але я відчуваю спокій. Вдалося завершити важливий проєкт на роботі, і це дає відчуття задоволення. Хоча були моменти стресу, зараз я почуваюся врівноваженим. Хочу більше таких днів, коли всередині панує гармонія.
+                </div>
+            </section>
+
+            <section class="emotions-section">
+                <h3 class="section-title" style="margin-bottom: 16px;">Аналіз емоцій</h3>
+                
+                <div class="progress-item" data-testid="emotion-calm">
+                    <div class="progress-header">
+                        <span class="progress-label">Спокій</span>
+                        <span class="progress-value">75%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 75%; background: var(--color-calm);"></div>
+                    </div>
+                </div>
+
+                <div class="progress-item" data-testid="emotion-joy">
+                    <div class="progress-header">
+                        <span class="progress-label">Задоволення</span>
+                        <span class="progress-value">65%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%; background: var(--color-joy);"></div>
+                    </div>
+                </div>
+
+                <div class="progress-item" data-testid="emotion-stress">
+                    <div class="progress-header">
+                        <span class="progress-label">Стрес</span>
+                        <span class="progress-value">30%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 30%; background: var(--color-stress);"></div>
+                    </div>
+                </div>
+
+                <div class="progress-item" data-testid="emotion-harmony">
+                    <div class="progress-header">
+                        <span class="progress-label">Гармонія</span>
+                        <span class="progress-value">70%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 70%; background: var(--color-harmony);"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="reflection-section">
+                <h3 class="section-title" style="margin-bottom: 12px;">AI-рефлексія</h3>
+                <div class="reflection-card" data-testid="ai-reflection">
+                    <p class="reflection-text">Ваш емоційний стан сьогодні збалансований. Ви пережили продуктивний день із моментами стресу, але загалом зберігаєте внутрішній спокій. Рекомендується продовжувати практики, які допомагають вам знаходити гармонію після напружених моментів.</p>
+                    <div class="reflection-tags">
+                        <span class="mood-tag tag-calm">Спокій</span>
+                        <span class="mood-tag tag-joy">Продуктивність</span>
+                        <span class="mood-tag tag-harmony">Гармонія</span>
+                    </div>
+                </div>
+            </section>
+
+            <button class="btn btn-primary btn-full" data-testid="new-record-btn" onclick="showScreen('recording-screen')" style="margin-top: 8px;">
+                Створити новий запис
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== SUPPORT SCREEN ===== -->
+    <div class="screen" id="support-screen">
+        <div class="container">
+            <header class="header header-simple">
+                <button class="header-back" data-testid="support-back-btn" onclick="showScreen('dashboard-screen')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12,19 5,12 12,5"/>
+                    </svg>
+                </button>
+                <span class="header-title">Анонімна підтримка</span>
+            </header>
+
+            <div class="support-banner-card">
+                <div class="support-banner-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand-purple)" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="support-banner-title">Ваша анонімність захищена</h4>
+                    <p class="support-banner-desc">Ми підбираємо людей зі схожими переживаннями. Ваша особистість залишається прихованою. Спілкуйтеся відкрито та безпечно.</p>
+                </div>
+            </div>
+
+            <div class="tabs" id="support-tabs">
+                <button class="tab active" data-testid="find-support-tab" onclick="switchSupportTab('find')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    Знайти підтримку
+                </button>
+                <button class="tab" data-testid="my-chats-tab" onclick="switchSupportTab('chats')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    Мої чати
+                </button>
+            </div>
+
+            <!-- Find Support Tab Content -->
+            <div id="find-support-content">
+                <div class="search-card" id="search-card">
+                    <div class="search-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <h3 class="search-title">Почати пошук</h3>
+                    <p class="search-desc">Знайдемо людину зі схожими переживаннями</p>
+                </div>
+
+                <div style="text-align: center;">
+                    <div class="searching-status" id="searching-status" data-testid="searching-status">
+                        <span class="searching-dot"></span>
+                        Шукаємо співрозмовника...
+                    </div>
+                </div>
+
+                <section class="matches-section" id="matches-section">
+                    <h3 class="section-title" style="margin-bottom: 16px;">Знайдені збіги:</h3>
+                    
+                    <div class="match-item" data-testid="match-item-1">
+                        <div class="match-header">
+                            <div class="match-status online">
+                                <span class="status-dot"></span>
+                                Онлайн
+                            </div>
+                            <div class="match-percent">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                92%
+                            </div>
+                        </div>
+                        <h4 class="match-title">Переживає стрес на роботі</h4>
+                        <button class="btn btn-primary match-button" data-testid="start-chat-btn-1">Почати розмову</button>
+                    </div>
+
+                    <div class="match-item" data-testid="match-item-2">
+                        <div class="match-header">
+                            <div class="match-status online">
+                                <span class="status-dot"></span>
+                                Онлайн
+                            </div>
+                            <div class="match-percent">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                87%
+                            </div>
+                        </div>
+                        <h4 class="match-title">Шукає баланс в житті</h4>
+                        <button class="btn btn-primary match-button" data-testid="start-chat-btn-2">Почати розмову</button>
+                    </div>
+
+                    <div class="match-item" data-testid="match-item-3">
+                        <div class="match-header">
+                            <div class="match-status offline">
+                                <span class="status-dot"></span>
+                                2 год тому
+                            </div>
+                            <div class="match-percent">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                78%
+                            </div>
+                        </div>
+                        <h4 class="match-title">Відчуває самотність</h4>
+                        <button class="btn btn-primary match-button" data-testid="start-chat-btn-3">Почати розмову</button>
+                    </div>
+                </section>
+
+                <button class="btn btn-secondary btn-full" data-testid="stop-search-btn" style="margin-bottom: 24px;">Зупинити пошук</button>
+            </div>
+
+            <!-- My Chats Tab Content (hidden by default) -->
+            <div id="my-chats-content" style="display: none;">
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 16px; opacity: 0.5;">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <p>У вас поки немає активних чатів</p>
+                </div>
+            </div>
+
+            <div class="rules-card">
+                <h4 class="rules-title">Правила спілкування:</h4>
+                <ul class="rules-list">
+                    <li>Будьте доброзичливими та підтримуйте один одного</li>
+                    <li>Не розкривайте особисту інформацію</li>
+                    <li>Поважайте кордони співрозмовника</li>
+                    <li>У кризових ситуаціях зверніться до професіонала</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== SCREEN NAVIGATION =====
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0, 0);
+            
+            // Start timer when entering recording screen
+            if (screenId === 'recording-screen') {
+                startRecordingTimer();
+            } else {
+                stopRecordingTimer();
+            }
+        }
+
+        // ===== AUTH HANDLERS =====
+        function handleLogin(event) {
+            event.preventDefault();
+            // Here will be backend call for Spring Boot
+            showScreen('dashboard-screen');
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            // Here will be backend call for Spring Boot
+            showScreen('dashboard-screen');
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // ===== RECORDING TIMER =====
+        let timerInterval = null;
+        let timerSeconds = 0;
+
+        function startRecordingTimer() {
+            timerSeconds = 0;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopRecordingTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById('recording-timer').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function toggleRecording() {
+            // Toggle pause/resume - for now just visual feedback
+            const stopBtn = document.querySelector('.stop-button');
+            stopBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                stopBtn.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        function cancelRecording() {
+            stopRecordingTimer();
+            timerSeconds = 0;
+            showScreen('dashboard-screen');
+        }
+
+        function saveRecording() {
+            stopRecordingTimer();
+            // Here will be backend call for Spring Boot
+            alert('Тут буде виклик бекенду для збереження аудіо!');
+            showScreen('analytics-screen');
+        }
+
+        // ===== SUPPORT TABS =====
+        function switchSupportTab(tab) {
+            const tabs = document.querySelectorAll('#support-tabs .tab');
+            const findContent = document.getElementById('find-support-content');
+            const chatsContent = document.getElementById('my-chats-content');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'find') {
+                tabs[0].classList.add('active');
+                findContent.style.display = 'block';
+                chatsContent.style.display = 'none';
+            } else {
+                tabs[1].classList.add('active');
+                findContent.style.display = 'none';
+                chatsContent.style.display = 'block';
+            }
+        }
+
+        // ===== INITIALIZE =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add random animation delays to wave bars for more natural effect
+            const waveBars = document.querySelectorAll('.wave-bar');
+            waveBars.forEach((bar, index) => {
+                const delay = (index * 0.05) + (Math.random() * 0.1);
+                const duration = 0.6 + (Math.random() * 0.4);
+                bar.style.animationDelay = `${delay}s`;
+                bar.style.animationDuration = `${duration}s`;
+            });
+        });
+    </script>
+</body>
+</html>
