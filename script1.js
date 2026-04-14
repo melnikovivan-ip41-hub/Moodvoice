@@ -59,9 +59,49 @@ let mediaRecorder;
         showScreen('dashboard-screen');
     }
 
-    function handleRegister(event) {
+    // Функція для обробки реєстрації
+    async function handleRegister(event) {
+        // 1. Зупиняємо стандартне перезавантаження сторінки
         event.preventDefault();
-        showScreen('dashboard-screen');
+
+        // 2. Отримуємо дані з твоїх інпутів (за їхніми ID з HTML)
+        const emailValue = document.getElementById('register-email').value;
+        const passwordValue = document.getElementById('register-password').value;
+
+        try {
+            // 3. Відправляємо POST-запит на наш Java-сервер
+            const response = await fetch("http://localhost:8080/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    email: emailValue, 
+                    password: passwordValue 
+                })
+            });
+
+            // 4. Читаємо відповідь від сервера
+            const data = await response.json();
+
+            // 5. Перевіряємо статус
+            if (data.status === "success") {
+                console.log("Відповідь сервера:", data.message);
+            
+                // Якщо все ок, перекидаємо користувача на головний екран (Дашборд)
+                showScreen('dashboard-screen');
+            
+                // Очищаємо поля вводу, щоб форма була чистою наступного разу
+                document.getElementById('register-email').value = '';
+                document.getElementById('register-password').value = '';
+            } else {
+                alert("Виникла помилка: " + data.message);
+           }
+
+        } catch (error) {
+            console.error("Сервер недоступний:", error);
+            alert("Не вдалося підключитися до сервера. Перевірте з'єднання.");
+        }
     }
 
     function togglePassword(inputId) {
