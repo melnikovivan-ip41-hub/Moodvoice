@@ -546,9 +546,16 @@ let mediaRecorder;
             const data = await response.json();
             
             if (response.ok && data.status === "success") {
-                // Виводимо повідомлення від Java (там буде розмір файлу та ID бази даних)
+                // Виводимо повідомлення від Java
                 showNotification(data.message, "success");
-                showScreen('analytics-screen');
+                
+                // --- ВИПРАВЛЕННЯ БАГУ ТУТ ---
+                // Оновлюємо масив записів з бази (новий стане найпершим)
+                await loadUserHistory(); 
+                // Відкриваємо екран аналітики саме для цього найновішого запису!
+                openAnalytics(0);        
+                // ----------------------------
+                
             } else {
                 showNotification("Помилка: " + data.message, "error");
             }
