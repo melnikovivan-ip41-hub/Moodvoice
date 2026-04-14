@@ -315,29 +315,35 @@ let mediaRecorder;
             return;
         }
 
-        // === ДЕМО-РЕЖИМ: Імітуємо успішне збереження ===
-        console.log("Аудіо успішно записано у браузері. Розмір: " + audioChunks.length + " шматків.");
-        showNotification("Демо-режим: Аудіо успішно збережено!", "success");
-        showScreen('analytics-screen');
+        // 1. Показуємо користувачу, що йде відправка
+        showNotification("Відправляємо аудіо на сервер...", "success"); // Можна зробити синю плашку 'info', але поки хай буде так
 
-        /* === СПРАВЖНІЙ КОД ДЛЯ JAVA (Закоментовано до кращих часів) ===
+        // 2. Збираємо шматочки аудіо в один файл (формат WebM)
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // 3. Пакуємо файл у спеціальний формат FormData (бо це файл, а не текст)
         const formData = new FormData();
         formData.append("file", audioBlob, "record.webm");
 
         try {
+            // 4. Відправляємо на твій новий Java-контролер
             const response = await fetch(`${API_BASE_URL}/api/audio/upload`, {
                 method: "POST",
-                body: formData
+                body: formData // Зверни увагу: тут немає headers "Content-Type", браузер сам його підставить для файлів
             });
+            
             const data = await response.json();
-            alert("Успішно: " + data.message);
-            showScreen('analytics-screen');
+            
+            if (response.ok && data.status === "success") {
+                showNotification(data.message, "success");
+                showScreen('analytics-screen');
+            } else {
+                showNotification("Помилка: " + data.message, "error");
+            }
         } catch (error) {
             console.error("Помилка відправки:", error);
-            alert("Java-сервер не відповідає. Запустіть Spring Boot!");
+            showNotification("Java-сервер не відповідає. Можливо, він ще 'прокидається'.", "error");
         }
-        =============================================================== */
     }
 
     // ===== ВКЛАДКИ ПІДТРИМКИ =====
