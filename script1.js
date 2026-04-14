@@ -89,6 +89,8 @@ let mediaRecorder;
 
         const emailValue = document.getElementById('login-email').value;
         const passwordValue = document.getElementById('login-password').value;
+
+        localStorage.setItem('userEmail', emailValue);
     
         if (passwordValue.length === 0 || emailValue.length === 0) {
              showNotification("Будь ласка, заповніть всі поля.", "error");
@@ -133,6 +135,8 @@ let mediaRecorder;
 
         const emailValue = document.getElementById('register-email').value;
         const passwordValue = document.getElementById('register-password').value;
+
+        localStorage.setItem('userEmail', emailValue);
 
         const emailLower = emailValue.toLowerCase();
         const emailRegex = /^[a-z0-9._-]{6,30}@(gmail\.com|ukr\.net|kpi\.ua|student\.kpi\.ua)$/;
@@ -315,32 +319,37 @@ let mediaRecorder;
             return;
         }
 
-        // 1. Показуємо користувачу, що йде відправка
-        showNotification("Відправляємо аудіо на сервер...", "success"); // Можна зробити синю плашку 'info', але поки хай буде так
+        showNotification("Відправляємо аудіо на сервер...", "success");
 
-        // 2. Збираємо шматочки аудіо в один файл (формат WebM)
+        // 1. Збираємо аудіо в файл
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-
-        // --- НОВЫЙ КОД: ВОСПРОИЗВЕДЕНИЕ АУДИО ---
+        
+        // --- ФОКУС: Прослуховування себе ---
+        // Відразу вмикаємо запис, щоб ти почув, що мікрофон реально працює!
         //const audioUrl = URL.createObjectURL(audioBlob);
         //const player = new Audio(audioUrl);
-        //player.play(); // Браузер мгновенно включит твою запись!
-        // ----------------------------------------
-        
-        // 3. Пакуємо файл у спеціальний формат FormData (бо це файл, а не текст)
+        //player.play();
+        // -----------------------------------
+
+        // 2. Пакуємо файл і пошту для відправки
         const formData = new FormData();
         formData.append("file", audioBlob, "record.webm");
+        
+        // Дістаємо пошту з пам'яті браузера (або ставимо аноніма, якщо забули)
+        const savedEmail = localStorage.getItem('userEmail') || "anonymous@kpi.ua";
+        formData.append("email", savedEmail);
 
         try {
-            // 4. Відправляємо на твій новий Java-контролер
+            // 3. Відправляємо на Java
             const response = await fetch(`${API_BASE_URL}/api/audio/upload`, {
                 method: "POST",
-                body: formData // Зверни увагу: тут немає headers "Content-Type", браузер сам його підставить для файлів
+                body: formData // headers тут не потрібні, браузер все зробить сам
             });
             
             const data = await response.json();
             
             if (response.ok && data.status === "success") {
+                // Виводимо повідомлення від Java (там буде розмір файлу та ID бази даних)
                 showNotification(data.message, "success");
                 showScreen('analytics-screen');
             } else {
