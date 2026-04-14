@@ -1245,6 +1245,14 @@
             border-left-color: #22c55e; /* Зелений для успіху */
         }
 
+        /* --- СТАН ЗАВАНТАЖЕННЯ ДЛЯ КНОПОК --- */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+            background: #555; /* Робимо її сірішою під час очікування */
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (min-width: 768px) {
             .container {
