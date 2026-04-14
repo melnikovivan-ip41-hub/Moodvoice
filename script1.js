@@ -4,6 +4,31 @@ let mediaRecorder;
     let timerSeconds = 0;
     const API_BASE_URL = "https://moodvoice-api.onrender.com";
 
+    // ===== КАСТОМНІ СПОВІЩЕННЯ (ПЛАШКИ) =====
+    function showNotification(message, type = 'error') {
+        const container = document.getElementById('notification-container');
+        if (!container) return; // Захист, якщо контейнер ще не завантажився
+    
+        // Створюємо нову плашку
+        const toast = document.createElement('div');
+        toast.className = `custom-toast ${type}`;
+        toast.textContent = message;
+    
+        // Додаємо її на сторінку
+        container.appendChild(toast);
+    
+        // Плавно показуємо (анімація появи)
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+    
+        // Ховаємо і видаляємо через 4 секунди
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400); // Чекаємо, поки закінчиться анімація зникнення
+        }, 4000);
+    }
+
     // ===== НАВІГАЦІЯ =====
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(screen => {
@@ -62,30 +87,28 @@ let mediaRecorder;
         const passwordValue = document.getElementById('login-password').value;
     
         if (passwordValue.length === 0 || emailValue.length === 0) {
-             alert("Будь ласка, заповніть всі поля.");
+             showNotification("Будь ласка, заповніть всі поля.", "error");
              return;
         }
     
         try {
-            // Зверни увагу: тут інший шлях - /login замість /register
             const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: emailValue, password: passwordValue })
             });
     
-            // Поки що наш сервер просто відповідає токеном для логіну
             if (response.ok) {
-                alert("Вхід успішний!");
+                showNotification("Вхід успішний!", "success");
                 showScreen('dashboard-screen');
                 document.getElementById('login-email').value = '';
                 document.getElementById('login-password').value = '';
             } else {
-                alert("Неправильний email або пароль.");
+                showNotification("Неправильний email або пароль.", "error");
             }
         } catch (error) {
             console.error("Сервер недоступний:", error);
-            alert("Не вдалося підключитися до сервера.");
+            showNotification("Не вдалося підключитися до сервера.", "error");
         }
     }
 
@@ -95,24 +118,19 @@ let mediaRecorder;
         const emailValue = document.getElementById('register-email').value;
         const passwordValue = document.getElementById('register-password').value;
 
-        // === 1. ОНОВЛЕНА ПЕРЕВІРКА ПОШТИ (REGEX) ===
         const emailLower = emailValue.toLowerCase();
-        // Додано {6,30} перед собачкою
         const emailRegex = /^[a-z0-9._-]{6,30}@(gmail\.com|ukr\.net|kpi\.ua|student\.kpi\.ua)$/;
         
         if (!emailRegex.test(emailLower)) {
-            alert("Помилка: Логін пошти (до @) має містити від 6 до 30 символів без спецсимволів. Дозволені домени: @gmail.com, @ukr.net, @kpi.ua");
-            return; // Зупиняємо функцію
+            showNotification("Логін пошти (до @) має містити від 6 до 30 символів без спецсимволів. Дозволені домени: @gmail.com, @ukr.net, @kpi.ua", "error");
+            return; 
         }
-        // ===========================================
 
-        // === 2. ПЕРЕВІРКА ПАРОЛЯ ===
         const passwordCheck = validatePassword(passwordValue);
         if (passwordCheck !== "ok") {
-            alert(passwordCheck); // Показуємо помилку користувачу
-            return; // Зупиняємо функцію
+            showNotification(passwordCheck, "error"); 
+            return; 
         }
-        // ===========================
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
@@ -124,16 +142,16 @@ let mediaRecorder;
             const data = await response.json();
 
             if (data.status === "success") {
-                alert("Реєстрація успішна!");
+                showNotification("Реєстрація успішна!", "success");
                 showScreen('dashboard-screen');
                 document.getElementById('register-email').value = '';
                 document.getElementById('register-password').value = '';
             } else {
-                alert("Виникла помилка: " + data.message);
+                showNotification(data.message, "error");
             }
         } catch (error) {
             console.error("Сервер недоступний:", error);
-            alert("Не вдалося підключитися до сервера.");
+            showNotification("Не вдалося підключитися до сервера.", "error");
         }
     }
 
@@ -175,7 +193,6 @@ let mediaRecorder;
     async function startAudioRecording() {
         audioChunks = [];
         try {
-            // Запитуємо дозвіл на мікрофон
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             
@@ -185,9 +202,9 @@ let mediaRecorder;
 
             mediaRecorder.start();
             startTimer();
-            updateStopButtonUI(true); // Робимо кнопку червоною
+            updateStopButtonUI(true); 
         } catch (err) {
-            alert("Помилка доступу до мікрофона: " + err);
+            showNotification("Помилка доступу до мікрофона: " + err, "error");
             showScreen('dashboard-screen');
         }
     }
@@ -270,13 +287,13 @@ let mediaRecorder;
         stopAudioRecording();
         
         if (audioChunks.length === 0) {
-            alert("Запис порожній!");
+            showNotification("Запис порожній!", "error");
             return;
         }
 
         // === ДЕМО-РЕЖИМ: Імітуємо успішне збереження ===
         console.log("Аудіо успішно записано у браузері. Розмір: " + audioChunks.length + " шматків.");
-        alert("Демо-режим: Аудіо успішно збережено! Переходимо до аналітики.");
+        showNotification("Демо-режим: Аудіо успішно збережено!", "success");
         showScreen('analytics-screen');
 
         /* === СПРАВЖНІЙ КОД ДЛЯ JAVA (Закоментовано до кращих часів) ===
