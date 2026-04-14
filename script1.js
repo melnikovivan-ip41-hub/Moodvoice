@@ -43,6 +43,10 @@ let mediaRecorder;
         } else {
             stopAudioRecording();
         }
+
+        if (screenId === 'dashboard-screen') {
+            loadUserHistory();
+        }
     }
 
     // ===== АВТОРИЗАЦІЯ =====
@@ -276,6 +280,80 @@ let mediaRecorder;
         } else {
             textSpan.textContent = 'Музика під настрій';
         }
+    }
+
+    // ===== ЛОГІКА ІСТОРІЇ ЗАПИСІВ =====
+    async function loadUserHistory() {
+        const savedEmail = localStorage.getItem('userEmail');
+        if (!savedEmail) return;
+
+        const historyList = document.querySelector('.history-list');
+        if (!historyList) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/audio/history?email=${savedEmail}`);
+            if (!response.ok) throw new Error('Помилка завантаження історії');
+            
+            const records = await response.json();
+            
+            // Очищаємо список від фейкових записів з HTML
+            historyList.innerHTML = '';
+
+            if (records.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">У вас поки немає записів. Створіть перший!</p>';
+                document.querySelector('[data-testid="stat-records"] .stat-number').textContent = '0';
+                return;
+            }
+
+            // Оновлюємо лічильник записів на дашборді
+            document.querySelector('[data-testid="stat-records"] .stat-number').textContent = records.length;
+
+            // Малюємо кожну справжню запис з БД
+            records.forEach(record => {
+                // Форматуємо дату (з Java приходить у форматі 2026-04-14T21:45:00)
+                const dateObj = new Date(record.createdAt);
+                const dateStr = dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+                
+                const recordHtml = `
+                    <div class="history-item" onclick="playArchivedAudio(${record.id})">
+                        <div class="history-header">
+                            <div class="history-meta">
+                                <div class="history-date">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                    ${dateStr}
+                                </div>
+                                <div class="history-time">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12,6 12,12 16,14"/>
+                                    </svg>
+                                    ${timeStr}
+                                </div>
+                            </div>
+                            <span class="mood-tag tag-calm">${Math.round(record.fileSize / 1024)} KB</span>
+                        </div>
+                        <p class="history-preview">Натисніть, щоб прослухати цей запис 🎵</p>
+                    </div>
+                `;
+                historyList.insertAdjacentHTML('beforeend', recordHtml);
+            });
+        } catch (error) {
+            console.error(error);
+            showNotification("Не вдалося завантажити історію записів", "error");
+        }
+    }
+
+    // Функція-плеєр для відтворення з архіву
+    function playArchivedAudio(id) {
+        showNotification("Завантажуємо аудіо з сервера...", "success");
+        const audio = new Audio(`${API_BASE_URL}/api/audio/play/${id}`);
+        audio.play().catch(e => showNotification("Помилка відтворення", "error"));
     }
 
     // ===== ТАЙМЕР =====
