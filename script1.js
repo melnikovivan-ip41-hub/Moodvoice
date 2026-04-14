@@ -95,22 +95,24 @@ let mediaRecorder;
         const emailValue = document.getElementById('register-email').value;
         const passwordValue = document.getElementById('register-password').value;
 
+        // === 1. ОНОВЛЕНА ПЕРЕВІРКА ПОШТИ (REGEX) ===
         const emailLower = emailValue.toLowerCase();
-        if (!emailLower.endsWith("@gmail.com") && 
-            !emailLower.endsWith("@ukr.net") && 
-            !emailLower.endsWith("@kpi.ua") && 
-            !emailLower.endsWith("@student.kpi.ua")) {
-            
-            alert("Помилка: Дозволені лише пошти @gmail.com, @ukr.net, @kpi.ua або @student.kpi.ua");
+        // Перевіряємо, щоб були тільки літери, цифри та правильні домени
+        const emailRegex = /^[a-z0-9._-]+@(gmail\.com|ukr\.net|kpi\.ua|student\.kpi\.ua)$/;
+        
+        if (!emailRegex.test(emailLower)) {
+            alert("Помилка: Невірний формат пошти або заборонені спецсимволи (наприклад !, #, $). Дозволені лише домени @gmail.com, @ukr.net, @kpi.ua або @student.kpi.ua");
             return; // Зупиняємо функцію, запит на сервер НЕ відправляється
         }
+        // ===========================================
 
+        // === 2. ПЕРЕВІРКА ПАРОЛЯ ===
         const passwordCheck = validatePassword(passwordValue);
         if (passwordCheck !== "ok") {
             alert(passwordCheck); // Показуємо помилку користувачу
             return; // Зупиняємо функцію
         }
-
+        // ===========================
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
