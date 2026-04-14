@@ -89,8 +89,6 @@ let mediaRecorder;
 
         const emailValue = document.getElementById('login-email').value;
         const passwordValue = document.getElementById('login-password').value;
-
-        localStorage.setItem('userEmail', emailValue);
     
         if (passwordValue.length === 0 || emailValue.length === 0) {
              showNotification("Будь ласка, заповніть всі поля.", "error");
@@ -109,6 +107,7 @@ let mediaRecorder;
             });
     
             if (response.ok) {
+                localStorage.setItem('userEmail', emailValue);
                 showNotification("Вхід успішний!", "success");
                 showScreen('dashboard-screen');
                 document.getElementById('login-email').value = '';
@@ -135,8 +134,6 @@ let mediaRecorder;
 
         const emailValue = document.getElementById('register-email').value;
         const passwordValue = document.getElementById('register-password').value;
-
-        localStorage.setItem('userEmail', emailValue);
 
         const emailLower = emailValue.toLowerCase();
         const emailRegex = /^[a-z0-9._-]{6,30}@(gmail\.com|ukr\.net|kpi\.ua|student\.kpi\.ua)$/;
@@ -166,6 +163,7 @@ let mediaRecorder;
             const data = await response.json();
 
             if (data.status === "success") {
+                localStorage.setItem('userEmail', emailValue);
                 showNotification("Реєстрація успішна!", "success");
                 showScreen('dashboard-screen');
                 document.getElementById('register-email').value = '';
