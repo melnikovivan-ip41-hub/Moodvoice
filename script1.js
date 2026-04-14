@@ -451,6 +451,30 @@ let mediaRecorder;
             iconPause.style.display = 'none';
             progressFill.style.width = '0%';
         };
+
+        // 1. Оновлюємо текст транскрипції
+        const transcriptionBox = document.querySelector('[data-testid="transcription-text"]');
+        if (transcriptionBox) {
+            transcriptionBox.textContent = record.transcription || "Транскрипція не знайдена...";
+        }
+
+        // 2. Оновлюємо теги настрою
+        const reflectionTags = document.querySelector('.reflection-tags');
+        if (reflectionTags) {
+            // Очищаємо старі теги і вставляємо той, що прийшов з бази
+            reflectionTags.innerHTML = `
+                <span class="mood-tag tag-calm" style="background: var(--brand-purple);">${record.moodType || "Аналіз"}</span>
+            `;
+        }
+
+        // 3. (Бонус) Імітація зміни відсотків емоцій
+        // Щоб повзунки не були завжди однаковими, трохи їх "оживимо" на основі розміру файлу
+        const seed = record.fileSize ? record.fileSize % 100 : 50;
+        document.querySelector('[data-testid="emotion-calm"] .progress-fill').style.width = `${Math.min(100, seed + 20)}%`;
+        document.querySelector('[data-testid="emotion-calm"] .progress-value').textContent = `${Math.min(100, seed + 20)}%`;
+        
+        document.querySelector('[data-testid="emotion-joy"] .progress-fill').style.width = `${Math.abs(80 - seed)}%`;
+        document.querySelector('[data-testid="emotion-joy"] .progress-value').textContent = `${Math.abs(80 - seed)}%`;
     }
 
     // ===== ТАЙМЕР =====
