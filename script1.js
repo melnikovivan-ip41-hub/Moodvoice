@@ -320,6 +320,12 @@ let mediaRecorder;
 
         // 2. Збираємо шматочки аудіо в один файл (формат WebM)
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+        // --- НОВЫЙ КОД: ВОСПРОИЗВЕДЕНИЕ АУДИО ---
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const player = new Audio(audioUrl);
+        player.play(); // Браузер мгновенно включит твою запись!
+        // ----------------------------------------
         
         // 3. Пакуємо файл у спеціальний формат FormData (бо це файл, а не текст)
         const formData = new FormData();
