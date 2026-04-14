@@ -4,6 +4,8 @@ let mediaRecorder;
     let timerSeconds = 0;
     const API_BASE_URL = "https://moodvoice-api.onrender.com";
 
+    let userHistoryRecords = [];
+
     // ===== КАСТОМНІ СПОВІЩЕННЯ (ПЛАШКИ) =====
     function showNotification(message, type = 'error') {
         const container = document.getElementById('notification-container');
@@ -37,16 +39,24 @@ let mediaRecorder;
         document.getElementById(screenId).classList.add('active');
         window.scrollTo(0, 0);
         
-        // Керування мікрофоном при переході на екран запису
+        // Керування мікрофоном
         if (screenId === 'recording-screen') {
             startAudioRecording();
         } else {
             stopAudioRecording();
         }
 
+        // Завантажуємо історію
         if (screenId === 'dashboard-screen') {
             loadUserHistory();
         }
+
+        // --- НОВЕ: ЗУПИНЯЄМО ПЛЕЄР ПРИ ВИХОДІ З АНАЛІТИКИ ---
+        const player = document.querySelector('#custom-audio-player audio');
+        if (player && screenId !== 'analytics-screen') {
+            player.pause(); // Ставимо на паузу, якщо ми пішли з екрану
+        }
+        // ----------------------------------------------------
     }
 
     // ===== АВТОРИЗАЦІЯ =====
@@ -294,29 +304,27 @@ let mediaRecorder;
             const response = await fetch(`${API_BASE_URL}/api/audio/history?email=${savedEmail}`);
             if (!response.ok) throw new Error('Помилка завантаження історії');
             
-            const records = await response.json();
+            // Зберігаємо записи в глобальну змінну!
+            userHistoryRecords = await response.json();
             
-            // Очищаємо список від фейкових записів з HTML
             historyList.innerHTML = '';
 
-            if (records.length === 0) {
+            if (userHistoryRecords.length === 0) {
                 historyList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">У вас поки немає записів. Створіть перший!</p>';
                 document.querySelector('[data-testid="stat-records"] .stat-number').textContent = '0';
                 return;
             }
 
-            // Оновлюємо лічильник записів на дашборді
-            document.querySelector('[data-testid="stat-records"] .stat-number').textContent = records.length;
+            document.querySelector('[data-testid="stat-records"] .stat-number').textContent = userHistoryRecords.length;
 
-            // Малюємо кожну справжню запис з БД
-            records.forEach(record => {
-                // Форматуємо дату (з Java приходить у форматі 2026-04-14T21:45:00)
+            userHistoryRecords.forEach((record, index) => {
                 const dateObj = new Date(record.createdAt);
                 const dateStr = dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
                 const timeStr = dateObj.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
                 
+                // ЗВЕРНИ УВАГУ: тепер onclick викликає openAnalytics(index)
                 const recordHtml = `
-                    <div class="history-item" onclick="playArchivedAudio(${record.id})">
+                    <div class="history-item" onclick="openAnalytics(${index})">
                         <div class="history-header">
                             <div class="history-meta">
                                 <div class="history-date">
@@ -338,7 +346,7 @@ let mediaRecorder;
                             </div>
                             <span class="mood-tag tag-calm">${Math.round(record.fileSize / 1024)} KB</span>
                         </div>
-                        <p class="history-preview">Натисніть, щоб прослухати цей запис 🎵</p>
+                        <p class="history-preview">Натисніть, щоб відкрити аналітику та прослухати 🎵</p>
                     </div>
                 `;
                 historyList.insertAdjacentHTML('beforeend', recordHtml);
@@ -349,11 +357,40 @@ let mediaRecorder;
         }
     }
 
-    // Функція-плеєр для відтворення з архіву
-    function playArchivedAudio(id) {
-        showNotification("Завантажуємо аудіо з сервера...", "success");
-        const audio = new Audio(`${API_BASE_URL}/api/audio/play/${id}`);
-        audio.play().catch(e => showNotification("Помилка відтворення", "error"));
+    function openAnalytics(index) {
+        // 1. Дістаємо дані конкретного запису
+        const record = userHistoryRecords[index];
+
+        // 2. Переходимо на екран аналітики
+        showScreen('analytics-screen');
+
+        // 3. Оновлюємо дату нагорі
+        const dateObj = new Date(record.createdAt);
+        const dateStr = dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+        const timeStr = dateObj.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+
+        document.querySelector('.analytics-date').innerHTML = `
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${dateStr}</span>
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg> ${timeStr}</span>
+        `;
+
+        // 4. Вставляємо аудіоплеєр перед картинкою настрою
+        const artSection = document.querySelector('.mood-art');
+        
+        // Видаляємо старий плеєр (якщо ми вже заходили на цей екран раніше)
+        const oldPlayer = document.getElementById('custom-audio-player');
+        if (oldPlayer) oldPlayer.remove();
+
+        // Створюємо нормальний плеєр (controls дає нам кнопку паузи)
+        const playerHtml = `
+            <div id="custom-audio-player" style="margin-bottom: 20px;">
+                <audio controls style="width: 100%; height: 40px; border-radius: 8px; outline: none;">
+                    <source src="${API_BASE_URL}/api/audio/play/${record.id}" type="audio/webm">
+                    Ваш браузер не підтримує аудіо елемент.
+                </audio>
+            </div>
+        `;
+        artSection.insertAdjacentHTML('beforebegin', playerHtml);
     }
 
     // ===== ТАЙМЕР =====
