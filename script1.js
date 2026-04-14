@@ -381,13 +381,13 @@ let mediaRecorder;
         // МАЛЮЄМО СВІЙ ВЛАСНИЙ ІНТЕРФЕЙС ПЛЕЄРА
         const playerHtml = `
             <div id="custom-audio-player" class="sleek-player">
-                <audio id="real-audio" autoplay style="display: none;">
+                <audio id="real-audio" style="display: none;">
                     <source src="${API_BASE_URL}/api/audio/play/${record.id}" type="audio/webm">
                 </audio>
                 
                 <button id="play-pause-btn" class="sleek-play-btn">
-                    <svg id="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                    <svg id="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                 </button>
                 
                 <div class="sleek-progress-bg" id="progress-bg">
