@@ -54,59 +54,102 @@ let mediaRecorder;
         }
     }
     
-    function handleLogin(event) {
+    async function handleLogin(event) {
         event.preventDefault();
-        showScreen('dashboard-screen');
+    
+        const emailValue = document.getElementById('login-email').value;
+        const passwordValue = document.getElementById('login-password').value;
+    
+        if (passwordValue.length === 0 || emailValue.length === 0) {
+             alert("Будь ласка, заповніть всі поля.");
+             return;
+        }
+    
+        try {
+            // Зверни увагу: тут інший шлях - /login замість /register
+            const response = await fetch("http://localhost:8080/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: emailValue, password: passwordValue })
+            });
+    
+            // Поки що наш сервер просто відповідає токеном для логіну
+            if (response.ok) {
+                alert("Вхід успішний!");
+                showScreen('dashboard-screen');
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+            } else {
+                alert("Неправильний email або пароль.");
+            }
+        } catch (error) {
+            console.error("Сервер недоступний:", error);
+            alert("Не вдалося підключитися до сервера.");
+        }
     }
-
-    // Функція для обробки реєстрації
+        // Функція для обробки реєстрації
     async function handleRegister(event) {
-        // 1. Зупиняємо стандартне перезавантаження сторінки
         event.preventDefault();
 
-        // 2. Отримуємо дані з твоїх інпутів (за їхніми ID з HTML)
         const emailValue = document.getElementById('register-email').value;
         const passwordValue = document.getElementById('register-password').value;
 
+        const passwordCheck = validatePassword(passwordValue);
+        if (passwordCheck !== "ok") {
+            alert(passwordCheck); // Показуємо помилку користувачу
+            return; // Зупиняємо функцію, запит на сервер НЕ відправляється
+        }
+        // --------------------------------
+
         try {
-            // 3. Відправляємо POST-запит на наш Java-сервер
             const response = await fetch("http://localhost:8080/api/auth/register", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ 
-                    email: emailValue, 
-                    password: passwordValue 
-                })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: emailValue, password: passwordValue })
             });
 
-            // 4. Читаємо відповідь від сервера
             const data = await response.json();
 
-            // 5. Перевіряємо статус
             if (data.status === "success") {
-                console.log("Відповідь сервера:", data.message);
-            
-                // Якщо все ок, перекидаємо користувача на головний екран (Дашборд)
+                alert("Реєстрація успішна!");
                 showScreen('dashboard-screen');
-            
-                // Очищаємо поля вводу, щоб форма була чистою наступного разу
                 document.getElementById('register-email').value = '';
                 document.getElementById('register-password').value = '';
             } else {
                 alert("Виникла помилка: " + data.message);
-           }
-
+            }
         } catch (error) {
             console.error("Сервер недоступний:", error);
-            alert("Не вдалося підключитися до сервера. Перевірте з'єднання.");
+            alert("Не вдалося підключитися до сервера.");
         }
     }
 
     function togglePassword(inputId) {
         const input = document.getElementById(inputId);
         input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Функція для перевірки надійності пароля
+    function validatePassword(password) {
+        const minLength = 8;
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasNumbers = /\d/.test(password);
+    
+        if (password.length < minLength) {
+            return "Пароль має містити щонайменше 8 символів.";
+        }
+        if (!hasUpperCase) {
+            return "Пароль має містити хоча б одну велику літеру.";
+        }
+        if (!hasLowerCase) {
+            return "Пароль має містити хоча б одну маленьку літеру.";
+        }
+        if (!hasNumbers) {
+            return "Пароль має містити хоча б одну цифру.";
+        }
+        
+        return "ok"; // Якщо всі перевірки пройдені
     }
 
     // ===== ЛОГІКА ЗАПИСУ З МІКРОФОНА =====
