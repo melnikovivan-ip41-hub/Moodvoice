@@ -97,12 +97,12 @@ let mediaRecorder;
 
         // === 1. ОНОВЛЕНА ПЕРЕВІРКА ПОШТИ (REGEX) ===
         const emailLower = emailValue.toLowerCase();
-        // Перевіряємо, щоб були тільки літери, цифри та правильні домени
-        const emailRegex = /^[a-z0-9._-]+@(gmail\.com|ukr\.net|kpi\.ua|student\.kpi\.ua)$/;
+        // Додано {6,30} перед собачкою
+        const emailRegex = /^[a-z0-9._-]{6,30}@(gmail\.com|ukr\.net|kpi\.ua|student\.kpi\.ua)$/;
         
         if (!emailRegex.test(emailLower)) {
-            alert("Помилка: Невірний формат пошти або заборонені спецсимволи (наприклад !, #, $). Дозволені лише домени @gmail.com, @ukr.net, @kpi.ua або @student.kpi.ua");
-            return; // Зупиняємо функцію, запит на сервер НЕ відправляється
+            alert("Помилка: Логін пошти (до @) має містити від 6 до 30 символів без спецсимволів. Дозволені домени: @gmail.com, @ukr.net, @kpi.ua");
+            return; // Зупиняємо функцію
         }
         // ===========================================
 
