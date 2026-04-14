@@ -2,6 +2,7 @@ let mediaRecorder;
     let audioChunks = [];
     let timerInterval = null;
     let timerSeconds = 0;
+    const API_BASE_URL = "https://moodvoice-api.onrender.com";
 
     // ===== НАВІГАЦІЯ =====
     function showScreen(screenId) {
@@ -23,7 +24,7 @@ let mediaRecorder;
     async function sendAuthRequest(email, password) {
         try {
             // Отправляем POST запрос на наш запущенный Spring Boot
-            const response = await fetch("http://localhost:8080/api/auth/register", {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: "POST",
                 headers: {
                    "Content-Type": "application/json"
@@ -67,7 +68,7 @@ let mediaRecorder;
     
         try {
             // Зверни увагу: тут інший шлях - /login замість /register
-            const response = await fetch("http://localhost:8080/api/auth/login", {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: emailValue, password: passwordValue })
@@ -102,7 +103,7 @@ let mediaRecorder;
         // --------------------------------
 
         try {
-            const response = await fetch("http://localhost:8080/api/auth/register", {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: emailValue, password: passwordValue })
@@ -266,7 +267,7 @@ let mediaRecorder;
         formData.append("file", audioBlob, "record.webm");
 
         try {
-            const response = await fetch("http://localhost:8080/api/audio/upload", {
+            const response = await fetch(`${API_BASE_URL}/api/audio/upload`, {
                 method: "POST",
                 body: formData
             });
