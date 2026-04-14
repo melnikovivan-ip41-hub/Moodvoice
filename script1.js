@@ -20,6 +20,40 @@ let mediaRecorder;
     }
 
     // ===== АВТОРИЗАЦІЯ =====
+    async function sendAuthRequest(email, password) {
+        try {
+            // Отправляем POST запрос на наш запущенный Spring Boot
+            const response = await fetch("http://localhost:8080/api/auth/register", {
+                method: "POST",
+                headers: {
+                   "Content-Type": "application/json"
+                },
+                // Превращаем данные в JSON строку
+                body: JSON.stringify({ 
+                    email: email, 
+                    password: password 
+                })
+            });
+
+            // Ждем и читаем ответ от сервера
+            const data = await response.json();
+
+            // Проверяем статус (помнишь, мы на сервере прописали "status": "success"?)
+            if (data.status === "success") {
+                console.log("Ура! Сервер ответил:", data.message);
+                alert("Авторизация прошла успешно!");
+            
+                // ТУТ БУДЕТ ТВОЙ КОД: 
+                // Например, закрыть окно авторизации, показать кнопку "Записать голос"
+                // document.getElementById('authModal').style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error("Сервер недоступен или произошла ошибка:", error);
+            alert("Не удалось подключиться к серверу!");
+        }
+    }
+    
     function handleLogin(event) {
         event.preventDefault();
         showScreen('dashboard-screen');
