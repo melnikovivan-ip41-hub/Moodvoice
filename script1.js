@@ -146,7 +146,10 @@ let mediaRecorder;
         const hasUpperCase = /[A-Z]/.test(password);
         const hasLowerCase = /[a-z]/.test(password);
         const hasNumbers = /\d/.test(password);
-    
+        
+        // НОВЕ: Перевірка на відсутність спецсимволів (знаходить все, що НЕ є літерою або цифрою)
+        const hasSpecialChars = /[^a-zA-Z0-9]/.test(password);
+
         if (password.length < minLength) {
             return "Пароль має містити щонайменше 8 символів.";
         }
@@ -159,8 +162,11 @@ let mediaRecorder;
         if (!hasNumbers) {
             return "Пароль має містити хоча б одну цифру.";
         }
+        if (hasSpecialChars) {
+            return "Пароль не повинен містити спецсимволів (лише англійські літери та цифри).";
+        }
         
-        return "ok"; // Якщо всі перевірки пройдені
+        return "ok"; 
     }
 
     // ===== ЛОГІКА ЗАПИСУ З МІКРОФОНА =====
