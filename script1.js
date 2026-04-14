@@ -358,13 +358,11 @@ let mediaRecorder;
     }
 
     function openAnalytics(index) {
-        // 1. Дістаємо дані конкретного запису
         const record = userHistoryRecords[index];
 
-        // 2. Переходимо на екран аналітики
+        // Перемикаємо на екран аналітики
         showScreen('analytics-screen');
 
-        // 3. Оновлюємо дату нагорі
         const dateObj = new Date(record.createdAt);
         const dateStr = dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
         const timeStr = dateObj.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
@@ -374,23 +372,85 @@ let mediaRecorder;
             <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg> ${timeStr}</span>
         `;
 
-        // 4. Вставляємо аудіоплеєр перед картинкою настрою
         const artSection = document.querySelector('.mood-art');
         
-        // Видаляємо старий плеєр (якщо ми вже заходили на цей екран раніше)
+        // Видаляємо старий плеєр
         const oldPlayer = document.getElementById('custom-audio-player');
         if (oldPlayer) oldPlayer.remove();
 
-        // Створюємо нормальний плеєр (controls дає нам кнопку паузи)
+        // МАЛЮЄМО СВІЙ ВЛАСНИЙ ІНТЕРФЕЙС ПЛЕЄРА
         const playerHtml = `
-            <div id="custom-audio-player" style="margin-bottom: 20px;">
-                <audio controls style="width: 100%; height: 40px; border-radius: 8px; outline: none;">
+            <div id="custom-audio-player" class="sleek-player">
+                <audio id="real-audio" autoplay style="display: none;">
                     <source src="${API_BASE_URL}/api/audio/play/${record.id}" type="audio/webm">
-                    Ваш браузер не підтримує аудіо елемент.
                 </audio>
+                
+                <button id="play-pause-btn" class="sleek-play-btn">
+                    <svg id="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    <svg id="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
+                </button>
+                
+                <div class="sleek-progress-bg" id="progress-bg">
+                    <div class="sleek-progress-fill" id="progress-fill"></div>
+                </div>
+                
+                <div class="sleek-time" id="time-display">0:00 / 0:00</div>
             </div>
         `;
         artSection.insertAdjacentHTML('beforebegin', playerHtml);
+
+        // --- ЛОГІКА ДЛЯ НАШОГО КРАСИВОГО ПЛЕЄРА ---
+        const audioEl = document.getElementById('real-audio');
+        const playBtn = document.getElementById('play-pause-btn');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        const progressBg = document.getElementById('progress-bg');
+        const progressFill = document.getElementById('progress-fill');
+        const timeDisplay = document.getElementById('time-display');
+
+        // Кнопка Пауза/Плей
+        playBtn.onclick = () => {
+            if (audioEl.paused) {
+                audioEl.play();
+                iconPlay.style.display = 'none';
+                iconPause.style.display = 'block';
+            } else {
+                audioEl.pause();
+                iconPlay.style.display = 'block';
+                iconPause.style.display = 'none';
+            }
+        };
+
+        // Форматування часу (з 65 секунд робить 1:05)
+        const formatTime = (time) => {
+            if (isNaN(time)) return "0:00";
+            const m = Math.floor(time / 60);
+            const s = Math.floor(time % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        };
+
+        // Рух полоси прогресу і зміна цифр
+        audioEl.ontimeupdate = () => {
+            if (!audioEl.duration) return;
+            const percent = (audioEl.currentTime / audioEl.duration) * 100;
+            progressFill.style.width = `${percent}%`;
+            timeDisplay.textContent = `${formatTime(audioEl.currentTime)} / ${formatTime(audioEl.duration)}`;
+        };
+
+        // Перемотка при кліку на полосу
+        progressBg.onclick = (e) => {
+            const rect = progressBg.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const percent = clickX / rect.width;
+            audioEl.currentTime = percent * audioEl.duration;
+        };
+
+        // Коли музика закінчилася - міняємо іконку на Плей
+        audioEl.onended = () => {
+            iconPlay.style.display = 'block';
+            iconPause.style.display = 'none';
+            progressFill.style.width = '0%';
+        };
     }
 
     // ===== ТАЙМЕР =====
