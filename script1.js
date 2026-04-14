@@ -83,6 +83,10 @@ let mediaRecorder;
     async function handleLogin(event) {
         event.preventDefault();
     
+        // 1. Знаходимо кнопку і запам'ятовуємо її оригінальний текст
+        const submitBtn = event.submitter;
+        const originalText = submitBtn.textContent;
+
         const emailValue = document.getElementById('login-email').value;
         const passwordValue = document.getElementById('login-password').value;
     
@@ -90,6 +94,10 @@ let mediaRecorder;
              showNotification("Будь ласка, заповніть всі поля.", "error");
              return;
         }
+
+        // 2. БЛОКУЄМО КНОПКУ
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Завантаження...";
     
         try {
             const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -109,11 +117,19 @@ let mediaRecorder;
         } catch (error) {
             console.error("Сервер недоступний:", error);
             showNotification("Не вдалося підключитися до сервера.", "error");
+        } finally {
+            // 3. РОЗБЛОКОВУЄМО КНОПКУ ЗАВЖДИ (навіть якщо була помилка)
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
         }
     }
 
     async function handleRegister(event) {
         event.preventDefault();
+
+        // 1. Знаходимо кнопку і запам'ятовуємо її оригінальний текст
+        const submitBtn = event.submitter;
+        const originalText = submitBtn.textContent;
 
         const emailValue = document.getElementById('register-email').value;
         const passwordValue = document.getElementById('register-password').value;
@@ -122,7 +138,7 @@ let mediaRecorder;
         const emailRegex = /^[a-z0-9._-]{6,30}@(gmail\.com|ukr\.net|kpi\.ua|student\.kpi\.ua)$/;
         
         if (!emailRegex.test(emailLower)) {
-            showNotification("Логін пошти (до @) має містити від 6 до 30 символів без спецсимволів. Дозволені домени: @gmail.com, @ukr.net, @kpi.ua", "error");
+            showNotification("Логін має бути від 6 до 30 символів без спецсимволів. Дозволені домени: @gmail.com, @ukr.net, @kpi.ua", "error");
             return; 
         }
 
@@ -131,6 +147,10 @@ let mediaRecorder;
             showNotification(passwordCheck, "error"); 
             return; 
         }
+
+        // 2. БЛОКУЄМО КНОПКУ
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Зачекайте...";
 
         try {
             const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
@@ -152,6 +172,10 @@ let mediaRecorder;
         } catch (error) {
             console.error("Сервер недоступний:", error);
             showNotification("Не вдалося підключитися до сервера.", "error");
+        } finally {
+            // 3. РОЗБЛОКОВУЄМО КНОПКУ ЗАВЖДИ
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
         }
     }
 
