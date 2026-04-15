@@ -452,6 +452,13 @@ let mediaRecorder;
             progressFill.style.width = '0%';
         };
 
+        // --- ПРИВ'ЯЗУЄМО КНОПКУ ВИДАЛЕННЯ ---
+        const deleteBtn = document.querySelector('[data-testid="delete-btn"]');
+        if (deleteBtn) {
+            // При кліку викликаємо нашу нову функцію з ID поточного запису
+            deleteBtn.onclick = () => deleteRecord(record.id);
+        }
+
         // 1. Оновлюємо текст транскрипції
         const transcriptionBox = document.querySelector('[data-testid="transcription-text"]');
         if (transcriptionBox) {
@@ -562,6 +569,37 @@ let mediaRecorder;
         } catch (error) {
             console.error("Помилка відправки:", error);
             showNotification("Java-сервер не відповідає. Можливо, він ще 'прокидається'.", "error");
+        }
+    }
+
+    // ===== ЛОГІКА ВИДАЛЕННЯ ЗАПИСУ =====
+    async function deleteRecord(recordId) {
+        // Запитуємо підтвердження у користувача (захист від випадкового кліку)
+        if (!confirm("Ви впевнені, що хочете назавжди видалити цей запис?")) {
+            return;
+        }
+
+        showNotification("Видалення...", "success");
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/audio/delete/${recordId}`, {
+                method: "DELETE"
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.status === "success") {
+                showNotification(data.message, "success");
+                
+                // Якщо видалили успішно - повертаємося на Дашборд
+                // Функція showScreen('dashboard-screen') автоматично підтягне оновлений список без цього файлу
+                showScreen('dashboard-screen');
+            } else {
+                showNotification("Помилка: " + data.message, "error");
+            }
+        } catch (error) {
+            console.error("Помилка видалення:", error);
+            showNotification("Сервер не відповідає.", "error");
         }
     }
 
