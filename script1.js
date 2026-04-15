@@ -382,7 +382,7 @@ let mediaRecorder;
         const playerHtml = `
             <div id="custom-audio-player" class="sleek-player">
                 <audio id="real-audio" style="display: none;">
-                    <source src="${API_BASE_URL}/api/audio/play/${record.id}" type="audio/webm">
+                    <source src="${record.filePath}" type="audio/webm">
                 </audio>
                 
                 <button id="play-pause-btn" class="sleek-play-btn">
