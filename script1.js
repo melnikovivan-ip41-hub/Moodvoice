@@ -572,10 +572,46 @@ let mediaRecorder;
         }
     }
 
-    // ===== ЛОГІКА ВИДАЛЕННЯ ЗАПИСУ =====
+    // --- ПОМІЧНИК: ВИКЛИК КАСТОМНОГО ВІКНА ПІДТВЕРДЖЕННЯ ---
+    function showCustomConfirm(message) {
+        return new Promise((resolve) => {
+            const overlay = document.getElementById('custom-confirm-overlay');
+            const msgEl = document.getElementById('confirm-message');
+            const btnYes = document.getElementById('confirm-yes-btn');
+            const btnCancel = document.getElementById('confirm-cancel-btn');
+
+            // Встановлюємо текст і показуємо вікно
+            msgEl.textContent = message;
+            overlay.classList.add('show');
+
+            // Функція для закриття вікна
+            const cleanup = () => {
+                overlay.classList.remove('show');
+                btnYes.onclick = null;
+                btnCancel.onclick = null;
+            };
+
+            // Якщо натиснули "Видалити"
+            btnYes.onclick = () => {
+                cleanup();
+                resolve(true); // Повертаємо "так"
+            };
+
+            // Якщо натиснули "Скасувати"
+            btnCancel.onclick = () => {
+                cleanup();
+                resolve(false); // Повертаємо "ні"
+            };
+        });
+    }
+
+    // ===== ОНОВЛЕНА ЛОГІКА ВИДАЛЕННЯ =====
     async function deleteRecord(recordId) {
-        // Запитуємо підтвердження у користувача (захист від випадкового кліку)
-        if (!confirm("Ви впевнені, що хочете назавжди видалити цей запис?")) {
+        // Використовуємо наше красиве вікно замість стандартного alert/confirm!
+        const isConfirmed = await showCustomConfirm("Ви впевнені, що хочете назавжди видалити цей запис?");
+        
+        // Якщо користувач натиснув "Скасувати" - просто виходимо
+        if (!isConfirmed) {
             return;
         }
 
@@ -590,9 +626,6 @@ let mediaRecorder;
             
             if (response.ok && data.status === "success") {
                 showNotification(data.message, "success");
-                
-                // Якщо видалили успішно - повертаємося на Дашборд
-                // Функція showScreen('dashboard-screen') автоматично підтягне оновлений список без цього файлу
                 showScreen('dashboard-screen');
             } else {
                 showNotification("Помилка: " + data.message, "error");
