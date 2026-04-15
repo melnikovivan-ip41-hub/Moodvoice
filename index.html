@@ -673,6 +673,22 @@
         </div>
     </div>
 	<div id="notification-container"></div>
+	<div id="custom-confirm-overlay" class="confirm-overlay">
+        <div class="confirm-box">
+            <div class="confirm-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"/>
+                    <path d="M19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"/>
+                </svg>
+            </div>
+            <h3 class="confirm-title">Видалити запис?</h3>
+            <p class="confirm-text" id="confirm-message">Ви впевнені?</p>
+            <div class="confirm-actions">
+                <button class="btn btn-secondary" id="confirm-cancel-btn">Скасувати</button>
+                <button class="btn btn-primary" id="confirm-yes-btn" style="background: var(--color-danger); border-color: var(--color-danger);">Видалити</button>
+            </div>
+        </div>
+    </div>
 	
 </body>
 </html>
